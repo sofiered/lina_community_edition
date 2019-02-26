@@ -11,7 +11,7 @@ setup_requires = [
 
 # package requirements
 install_requires = [
-    'aiohttp==3.3.2',
+    'aiohttp==3.5.4',
     'aiovk==2.2.1'
 ]
 
