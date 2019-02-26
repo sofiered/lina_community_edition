@@ -1,13 +1,15 @@
 import asyncio
-from aiohttp.web import Application, Response, AppRunner, View, view, TCPSite
+from aiohttp.web import Application, Response, AppRunner, View, view, Request
 
 
-class VerificationView(View):
+class CallbackView(View):
     async def post(self):
-        return Response(text='2d840b43')
+        data = await self.request.json()
+        print(data)
+        return Response(text='ok')
 
 
-ROUTES = (view('/verification', VerificationView),)
+ROUTES = (view('/8moidkh1/callback', CallbackView),)
 
 
 class Server:
