@@ -5,6 +5,7 @@ from aiohttp.web import Application, Response, AppRunner, View, view, Request
 class CallbackView(View):
     async def post(self):
         data = await self.request.json()
+        print(data)
         if data['type'] == 'confirmation' and data['group_id'] == 178891316:
             return Response(text='2d840b43')
         else:
