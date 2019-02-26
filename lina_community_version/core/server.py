@@ -5,8 +5,10 @@ from aiohttp.web import Application, Response, AppRunner, View, view, Request
 class CallbackView(View):
     async def post(self):
         data = await self.request.json()
-        print(data)
-        return Response(text='ok')
+        if data['type'] == 'confirmation' and data['group_id'] == 178891316:
+            return Response(text='2d840b43')
+        else:
+            return Response(text='ok')
 
 
 ROUTES = (view('/8moidkh1/callback', CallbackView),)
