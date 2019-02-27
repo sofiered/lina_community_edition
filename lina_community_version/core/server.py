@@ -1,23 +1,16 @@
 import asyncio
-from aiohttp.web import Application, Response, AppRunner, View, view, Request
+from aiohttp.web import Application, AppRunner, view
 
+from lina_community_version.lina.handlers import VkCallback
 
-class CallbackView(View):
-    async def post(self):
-        data = await self.request.json()
-        print(data)
-        if data['type'] == 'confirmation' and data['group_id'] == 178891316:
-            return Response(text='2d840b43')
-        else:
-            return Response(text='ok')
-
-
-ROUTES = (view('/8moidkh1/callback', CallbackView),)
+ROUTES = (view('/8moidkh1/callback', VkCallback),)
 
 
 class Server:
-    def __init__(self):
+    def __init__(self, owner):
+        self.owner = owner
         self.app = Application(loop=asyncio.get_event_loop())
+        self.app['owner'] = self.owner
         self.app.add_routes(ROUTES)
 
         self.runner = AppRunner(self.app)
@@ -29,8 +22,8 @@ class Server:
         print('create server')
         await self.runner.setup()
         self.server = await self.loop.create_server(self.runner.server,
-                                                    'localhost',
-                                                    13444)
+                                                    self.owner.args.host,
+                                                    self.owner.args.port)
 
     async def stop(self):
         await self.runner.shutdown()
