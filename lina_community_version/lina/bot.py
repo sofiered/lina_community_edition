@@ -1,4 +1,5 @@
 import asyncio
+from dataclasses import asdict
 import argparse
 import yaml
 
@@ -49,4 +50,4 @@ class Lina:
         return Response(text='ok')
 
     async def _process_new_message(self, message: NewMessage) -> None:
-        pass
+        print(asdict(message))
