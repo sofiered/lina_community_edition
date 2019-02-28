@@ -26,13 +26,13 @@ class NewMessage(BaseMessage):
     out: int
     peer_id: int
     text: str
-    raw_text: Optional[str]
     conversation_message_id: int
     fwd_messages: List[Any]
     important: bool
     random_id: int
     attachments: List[Any]
     is_hidden: bool
+    raw_text: Optional[str] = None
 
 
 def message_factory(_type: str,
