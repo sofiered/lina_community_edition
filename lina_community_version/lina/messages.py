@@ -1,4 +1,4 @@
-from typing import Dict, Any, List, Union
+from typing import Dict, Any, List, Union, Optional
 from dataclasses import dataclass
 from enum import Enum
 
@@ -26,6 +26,7 @@ class NewMessage(BaseMessage):
     out: int
     peer_id: int
     text: str
+    raw_text: Optional[str]
     conversation_message_id: int
     fwd_messages: List[Any]
     important: bool

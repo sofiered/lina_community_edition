@@ -1,5 +1,5 @@
 import asyncio
-from dataclasses import asdict
+import re
 import argparse
 import yaml
 
@@ -11,6 +11,8 @@ from .messages import Confirmation, NewMessage
 
 
 class Lina:
+    _regexp_template = '([club%s|.+]|%s)'
+
     def __init__(self):
         self.server = Server(self)
         parser = argparse.ArgumentParser()
@@ -18,6 +20,10 @@ class Lina:
         self.args = parser.parse_args()
         self.cfg = self.read_config(self.args.cfg)
         print(self.cfg)
+        self.regexp_mention = re.compile(
+            self._regexp_template %
+            (self.cfg['group_id'], '|'.join(self.cfg['bot_names'])))
+        print(self.regexp_mention)
 
     def add_args(self, parser):
         parser.add_argument('-c', '--cfg', default='config.yml')
@@ -50,4 +56,8 @@ class Lina:
         return Response(text='ok')
 
     async def _process_new_message(self, message: NewMessage) -> None:
-        print(asdict(message))
+
+        if not re.search(self.regexp_mention, message.text):
+            return  # message without bot mention
+        message.raw_text = re.sub(self.regexp_mention, '', message.text)
+        print(message)
