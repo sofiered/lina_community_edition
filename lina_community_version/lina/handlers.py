@@ -1,13 +1,14 @@
 from aiohttp import web
 
+from .messages import message_factory
 
-class BaseView(web.View):
+
+class VkCallback(web.View):
     @property
     def owner(self):
         return self.request.config_dict['owner']
 
-
-class VkCallback(BaseView):
     async def post(self) -> web.Response:
         data = await self.request.json()
-        return await self.owner.process_message(data)
+        message = message_factory(data['type'], data['object'])
+        return await self.owner.process_message(message)
