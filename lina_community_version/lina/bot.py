@@ -11,7 +11,7 @@ from .messages import Confirmation, NewMessage
 
 
 class Lina:
-    _regexp_template = '(\[club%s\|.+\]|%s)'  # noqa: W605
+    _regexp_template = r'(\[club%s\|.+\]|%s)'
 
     def __init__(self):
         self.server = Server(self)
