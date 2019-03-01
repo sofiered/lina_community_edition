@@ -4,9 +4,11 @@ import argparse
 import yaml
 
 from aiohttp.web import Response
+from random import randint
 from typing import Union
 
 from lina_community_version.core.server import Server
+from lina_community_version.core.vkapi import VkApi
 from .messages import Confirmation, NewMessage
 
 
@@ -14,7 +16,7 @@ class Lina:
     _regexp_template = r'(\[club%s\|.+\]|%s)'
 
     def __init__(self):
-        self.server = Server(self)
+
         parser = argparse.ArgumentParser()
         self.add_args(parser)
         self.args = parser.parse_args()
@@ -23,7 +25,9 @@ class Lina:
         self.regexp_mention = re.compile(
             self._regexp_template %
             (self.cfg['group_id'], '|'.join(self.cfg['bot_names'])))
-        print(self.regexp_mention)
+
+        self.server = Server(self)
+        self.api = VkApi(self.cfg['token'])
 
     def add_args(self, parser):
         parser.add_argument('-c', '--cfg', default='config.yml')
@@ -36,6 +40,7 @@ class Lina:
 
     async def start(self):
         asyncio.create_task(self.server.start())
+        asyncio.create_task(self.api.start())
 
     async def process_message(self,
                               message: Union[Confirmation,
@@ -60,4 +65,7 @@ class Lina:
         if not re.search(self.regexp_mention, message.text):
             return  # message without bot mention
         message.raw_text = re.sub(self.regexp_mention, '', message.text)
-        print(message)
+        if 'hello' in message.raw_text:
+            await self.api.api.messages.send(peer_id=message.peer_id,
+                                             text='world',
+                                             random_id=randint(10000, 99999))
