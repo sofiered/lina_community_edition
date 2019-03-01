@@ -64,7 +64,9 @@ class Lina:
 
         if not re.search(self.regexp_mention, message.text):
             return  # message without bot mention
+        print(message)
         message.raw_text = re.sub(self.regexp_mention, '', message.text)
+        print(message.raw_text)
         if 'hello' in message.raw_text:
             await self.api.api.messages.send(peer_id=message.peer_id,
                                              text='world',
