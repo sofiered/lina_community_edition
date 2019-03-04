@@ -70,5 +70,5 @@ class Lina:
         if 'hello' in message.raw_text:
             print('send world')
             await self.api.api.messages.send(peer_id=message.peer_id,
-                                             text='world',
+                                             message='world',
                                              random_id=randint(10000, 99999))
