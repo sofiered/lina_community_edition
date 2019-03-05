@@ -11,8 +11,9 @@ setup_requires = [
 
 # package requirements
 install_requires = [
-    'aiohttp==3.3.2',
-    'aiovk==2.2.1'
+    'aiohttp==3.5.4',
+    'aiovk==2.2.1',
+    'PyYAML==3.13'
 ]
 
 
