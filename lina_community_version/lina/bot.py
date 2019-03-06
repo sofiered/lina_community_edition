@@ -4,19 +4,20 @@ import argparse
 import yaml
 
 from aiohttp.web import Response
-from random import randint
-from typing import Union
+from typing import Union, Set, Optional
 
 from lina_community_version.core.server import Server
 from lina_community_version.core.vkapi import VkApi
-from .messages import Confirmation, NewMessage
+from lina_community_version.core.messages import Confirmation, NewMessage
+from lina_community_version.core.handlers import BaseMessageHandler
 
 
 class Lina:
     _regexp_template = r'(\[club%s\|.+\]|%s)'
 
     def __init__(self):
-
+        self._handler_class: Optional[BaseMessageHandler] = None
+        self._handlers: Set[BaseMessageHandler] = set()
         parser = argparse.ArgumentParser()
         self.add_args(parser)
         self.args = parser.parse_args()
@@ -34,17 +35,25 @@ class Lina:
         parser.add_argument('--host', default='127.0.0.1')
         parser.add_argument('--port', default=13666, type=int)
 
+    def setup_handler_class(self, handler_class: BaseMessageHandler):
+        self._handler_class = handler_class
+
+    def init_handlers(self):
+        self._handlers = {handler(self) for handler in
+                          self._handler_class.__subclasses__()}
+
     def read_config(self, path: str):
         with open(path) as stream:
             return yaml.load(stream)
 
     async def start(self):
         asyncio.create_task(self.server.start())
-        asyncio.create_task(self.api.start())
+        self.init_handlers()
 
     async def process_message(self,
                               message: Union[Confirmation,
                                              NewMessage]) -> Response:
+        print('<-- recieved message: ', message)
         if isinstance(message, Confirmation):
             return await self.process_confirmation_message(message)
         elif isinstance(message, NewMessage):
@@ -61,14 +70,15 @@ class Lina:
         return Response(text='ok')
 
     async def _process_new_message(self, message: NewMessage) -> None:
-
         if not re.search(self.regexp_mention, message.text):
             return  # message without bot mention
-        print(message)
         message.raw_text = re.sub(self.regexp_mention, '', message.text)
-        print(message.raw_text)
-        if 'hello' in message.raw_text:
-            print('send world')
-            await self.api.api.messages.send(peer_id=message.peer_id,
-                                             message='world',
-                                             random_id=randint(10000, 99999))
+        await self._handle_new_message(message)
+
+    async def _handle_new_message(self, message: NewMessage):
+        for handler in self._handlers:
+            print(handler)
+            await handler.handler(message)
+
+    async def add_handler(self, handler: BaseMessageHandler):
+        self._handlers.add(handler)

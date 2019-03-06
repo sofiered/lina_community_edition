@@ -1,6 +1,6 @@
 import asyncio
 from aiohttp.web import Application, AppRunner, view
-from lina_community_version.lina.handlers import VkCallback
+from lina_community_version.core.handlers import VkCallback
 from .middleware import check_group_middleware
 
 ROUTES = (view('/8moidkh1/callback', VkCallback),)  # type: ignore
