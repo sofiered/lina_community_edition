@@ -4,6 +4,7 @@ import argparse
 import yaml
 
 from aiohttp.web import Response
+from logging import config, getLogger, StreamHandler, INFO
 from typing import Union, Set, Optional
 
 from lina_community_version.core.server import Server
@@ -24,13 +25,27 @@ class Lina:
         self.add_args(parser)
         self.args = parser.parse_args()
         self.cfg = self.read_config(self.args.cfg)
-        print(self.cfg)
+        if 'logger_name' in self.cfg and 'log_config' in self.cfg:
+            log_config = self.cfg['log_config']
+            config.dictConfig(log_config)
+            self.logger = getLogger(self.cfg['logger_name'])
+        else:
+            self.logger = self.create_logger()
+        self.logger.info(self.cfg)
+
         self.regexp_mention = re.compile(
             self._regexp_template %
             (self.cfg['group_id'], '|'.join(self.cfg['bot_names'])))
 
         self.server = Server(self)
-        self.api = VkApi(self.cfg['token'])
+        self.api = VkApi(self)
+
+    @staticmethod
+    def create_logger():
+        logger = getLogger()
+        logger.addHandler(StreamHandler())
+        logger.setLevel(INFO)
+        return logger
 
     def add_args(self, parser):
         parser.add_argument('-c', '--cfg', default='config.yml')
@@ -55,7 +70,7 @@ class Lina:
     async def process_message(self,
                               message: Union[Confirmation,
                                              NewMessage]) -> Response:
-        print('<-- recieved message: ', message)
+        self.logger.info('<-- recieved message: ', message)
         if isinstance(message, Confirmation):
             return await self.process_confirmation_message(message)
         elif isinstance(message, NewMessage):
@@ -82,7 +97,7 @@ class Lina:
             try:
                 await handler.handler(message)
             except VKException as e:
-                print('ERROR: ', e)
+                self.logger.error('ERROR: ', e)
             except VkSendErrorException:
                 await self.api.send_error_sticker(message.peer_id)
 

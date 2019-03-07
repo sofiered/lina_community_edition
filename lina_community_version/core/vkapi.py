@@ -45,25 +45,28 @@ class LinaTokenSession(TokenSession):
 
 
 class VkApi:
-    def __init__(self, token: str) -> None:
-        self.token = token
-        self.session = LinaTokenSession(access_token=token)
+    def __init__(self, owner) -> None:
+        self.owner = owner
+        self.token = self.owner.cfg['token']
+        self.session = LinaTokenSession(access_token=self.token)
         self.api: API = API(self.session)
 
     @vk_exception
     async def send_message(self,
                            peer_id: int,
                            message: str) -> Dict[str, Any]:
-        print('send message: peer_id %s, message %s' % (peer_id,
-                                                        message))
+        self.owner.logger.info(
+            'send message: peer_id %s, message %s' % (peer_id,
+                                                      message))
         return await self.api.messages.send(peer_id=peer_id,
                                             message=message,
                                             random_id=randint(10000, 99999))
 
     @vk_exception
     async def send_sticker(self, peer_id: int, sticker_id: int):
-        print('send sticker: peer_id %s, sticker_id %s' % (peer_id,
-                                                           sticker_id))
+        self.owner.logger.info(
+            'send sticker: peer_id %s, sticker_id %s' % (peer_id,
+                                                         sticker_id))
         return await self.api.messages.send(peer_id=peer_id,
                                             sticker_id=sticker_id,
                                             random_id=randint(10000, 99999))
