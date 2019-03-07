@@ -38,7 +38,7 @@ class Lina:
             (self.cfg['group_id'], '|'.join(self.cfg['bot_names'])))
 
         self.server = Server(self)
-        self.api = VkApi(self.cfg['token'])
+        self.api = VkApi(self)
 
     @staticmethod
     def create_logger():
@@ -70,7 +70,7 @@ class Lina:
     async def process_message(self,
                               message: Union[Confirmation,
                                              NewMessage]) -> Response:
-        print('<-- recieved message: ', message)
+        self.logger.info('<-- recieved message: ', message)
         if isinstance(message, Confirmation):
             return await self.process_confirmation_message(message)
         elif isinstance(message, NewMessage):
@@ -97,7 +97,7 @@ class Lina:
             try:
                 await handler.handler(message)
             except VKException as e:
-                print('ERROR: ', e)
+                self.logger.error('ERROR: ', e)
             except VkSendErrorException:
                 await self.api.send_error_sticker(message.peer_id)
 
