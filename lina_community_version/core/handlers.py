@@ -11,6 +11,7 @@ class VkCallback(web.View):
 
     async def post(self) -> web.Response:
         data = await self.request.json()
+        print(data)
         message = message_factory(data.get('type'),
                                   data.get('object', dict()))
         return await self.owner.process_message(message)

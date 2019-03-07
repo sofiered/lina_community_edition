@@ -34,6 +34,9 @@ class NewMessage(BaseMessage):
     is_hidden: bool
     raw_text: Optional[str] = None
 
+    def __post_init__(self):
+        self.text = self.text.lower()
+
 
 def message_factory(_type: str,
                     data: Dict[str, Any]) -> Union[NewMessage, Confirmation]:

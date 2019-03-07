@@ -1,18 +1,13 @@
 from random import randint
-from typing import List
+from typing import List, Callable, Awaitable, Any, Dict
 from aiohttp import ClientSession
 from aiovk import API, TokenSession
 
 from .profiles import UserProfile
+from .exceptions import VKException
 
 
-class VKException(Exception):
-    def __init__(self, error_text: str, error_code: int) -> None:
-        super().__init__(error_text)
-        self.code = error_code
-
-
-def vk_exception(func):
+def vk_exception(func: Callable[..., Awaitable[Dict[str, Any]]]):
     async def wrapped_func(*args, **kwargs):
         result = await func(*args, **kwargs)
         if 'error' in result:
@@ -55,15 +50,23 @@ class VkApi:
         self.session = LinaTokenSession(access_token=token)
         self.api: API = API(self.session)
 
-    async def send_message(self, peer_id: int, message: str):
-        await self.api.messages.send(peer_id=peer_id,
-                                     message=message,
-                                     random_id=randint(10000, 99999))
+    @vk_exception
+    async def send_message(self,
+                           peer_id: int,
+                           message: str) -> Dict[str, Any]:
+        print('send message: peer_id %s, message %s' % (peer_id,
+                                                        message))
+        return await self.api.messages.send(peer_id=peer_id,
+                                            message=message,
+                                            random_id=randint(10000, 99999))
 
+    @vk_exception
     async def send_sticker(self, peer_id: int, sticker_id: int):
-        await self.api.messages.send(peer_id=peer_id,
-                                     sticker_id=sticker_id,
-                                     random_id=randint(10000, 99999))
+        print('send sticker: peer_id %s, sticker_id %s' % (peer_id,
+                                                           sticker_id))
+        return await self.api.messages.send(peer_id=peer_id,
+                                            sticker_id=sticker_id,
+                                            random_id=randint(10000, 99999))
 
     @vk_exception
     async def _get_conversation_members(self, peer_id: int):
@@ -74,3 +77,7 @@ class VkApi:
         response = await self._get_conversation_members(peer_id=peer_id)
         return [UserProfile(**data) for data in
                 response['response']['profiles']]
+
+    async def send_error_sticker(self, peer_id: int):
+        await self.send_sticker(peer_id=peer_id,
+                                sticker_id=8471)

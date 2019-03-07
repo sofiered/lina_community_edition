@@ -8,6 +8,8 @@ from typing import Union, Set, Optional
 
 from lina_community_version.core.server import Server
 from lina_community_version.core.vkapi import VkApi
+from lina_community_version.core.exceptions import VKException, \
+    VkSendErrorException
 from lina_community_version.core.messages import Confirmation, NewMessage
 from lina_community_version.core.handlers import BaseMessageHandler
 
@@ -77,8 +79,12 @@ class Lina:
 
     async def _handle_new_message(self, message: NewMessage):
         for handler in self._handlers:
-            print(handler)
-            await handler.handler(message)
+            try:
+                await handler.handler(message)
+            except VKException as e:
+                print('ERROR: ', e)
+            except VkSendErrorException:
+                await self.api.send_error_sticker(message.peer_id)
 
     async def add_handler(self, handler: BaseMessageHandler):
         self._handlers.add(handler)
