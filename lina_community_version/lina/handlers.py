@@ -1,15 +1,130 @@
-from aiohttp import web
+import re
 
-from .messages import message_factory
+from itertools import chain
+from random import SystemRandom, choice
+from typing import Optional, TYPE_CHECKING, Pattern
+
+from lina_community_version.core.handlers import BaseMessageHandler
+from lina_community_version.core.messages import NewMessage
+from lina_community_version.core.exceptions import VkSendErrorException
+
+if TYPE_CHECKING:
+    from lina_community_version.lina.bot import Lina
 
 
-class VkCallback(web.View):
-    @property
-    def owner(self):
-        return self.request.config_dict['owner']
+class LinaNewMessageHandler(BaseMessageHandler):
+    def __init__(self, service: 'Lina') -> None:
+        self.service = service
 
-    async def post(self) -> web.Response:
-        data = await self.request.json()
-        message = message_factory(data.get('type'),
-                                  data.get('object', dict()))
-        return await self.owner.process_message(message)
+    trigger_word: Optional[str] = None
+
+    async def is_triggered(self, message: NewMessage) -> bool:
+        if self.trigger_word is None or message.raw_text is None:
+            return False
+        else:
+            return self.trigger_word in message.raw_text
+
+    async def _handler(self, message: NewMessage):
+        await self.service.api.send_message(
+            peer_id=message.peer_id,
+            message=await self.get_content(message))
+
+    async def get_content(self, message: NewMessage):
+        raise NotImplementedError
+
+
+class PingPongMessageHandler(LinaNewMessageHandler):
+    trigger_word = 'ping'
+
+    async def get_content(self, message: NewMessage):
+        return 'pong'
+
+
+class SimpleDiceMessageHandler(LinaNewMessageHandler):
+    trigger_word = 'дайс'
+
+    async def get_content(self, _message: NewMessage):
+        return SystemRandom().randint(1, 20)
+
+
+class RaiseErrorMessageHandler(LinaNewMessageHandler):
+    trigger_word = 'умри'
+
+    async def get_content(self, message: NewMessage):
+        raise VkSendErrorException
+
+
+class RegexpDiceMessageHandler(LinaNewMessageHandler):
+    pattern: Pattern[str] = re.compile(r'(\d+)[dдк](\d+)\s*([xх/*+-]\d+)?')
+
+    async def is_triggered(self, message: NewMessage) -> bool:
+        if message.raw_text is not None:
+            return self.pattern.search(message.raw_text) is not None
+        else:
+            raise VkSendErrorException
+
+    async def get_content(self, message: NewMessage):
+        if message.raw_text is not None:
+            parse_result = self.pattern.findall(message.raw_text)
+            amount: int = int(parse_result[0][0])
+            dice: int = int(parse_result[0][1])
+            modifier: str = parse_result[0][2]
+
+            if amount + dice > 1000:
+                raise VkSendErrorException
+            if amount < 1:
+                raise VkSendErrorException
+            if dice < 1:
+                raise VkSendErrorException
+            dice_pool = [SystemRandom().randint(1, dice)
+                         # if not (self.bot.is_cheating
+                         # and 'ч' in message.raw_text)
+                         # else dice
+                         for _ in range(amount)]
+            pool_result_str = ' + '.join(map(str, dice_pool))
+            pool_result_int = sum(dice_pool)
+            number_modifier = int(modifier[1:]) if modifier != '' else 0
+            if modifier.startswith('+'):
+                throw_result = str(pool_result_int + number_modifier)
+            elif modifier.startswith('-'):
+                throw_result = str(pool_result_int - number_modifier)
+            elif modifier.startswith('/'):
+                throw_result = format(pool_result_int / number_modifier, '.2f')
+            elif modifier.startswith(('x', 'х', '*')):
+                throw_result = str(pool_result_int * number_modifier)
+            else:
+                throw_result = str(pool_result_int)
+
+            result = '(%s)%s = %s' % (pool_result_str,
+                                      modifier,
+                                      throw_result)
+            return result
+        else:
+            raise VkSendErrorException
+
+
+class MeowMessageHandler(LinaNewMessageHandler):
+    trigger_word = 'мяу'
+
+    async def _handler(self, message: NewMessage):
+        await self.service.api.send_sticker(
+            peer_id=message.peer_id,
+            sticker_id=await self.get_content(message))
+
+    async def get_content(self, message: NewMessage):
+        peachy_ids = range(49, 97)
+        rumka_ids = range(5582, 5630)
+        misti_ids = range(5701, 5745)
+        seth_ids = range(6109, 6156)
+        lovely_ids = range(7096, 7143)
+        pair_id = range(11607, 11654)
+        snow_id = range(11238, 11285)
+
+        cats_id = [cat for cat in chain(peachy_ids,
+                                        rumka_ids,
+                                        misti_ids,
+                                        seth_ids,
+                                        lovely_ids,
+                                        pair_id,
+                                        snow_id)]
+        return choice(cats_id)

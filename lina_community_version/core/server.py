@@ -1,9 +1,7 @@
 import asyncio
 from aiohttp.web import Application, AppRunner, view
-from lina_community_version.lina.handlers import VkCallback
+from lina_community_version.core.handlers import VkCallback
 from .middleware import check_group_middleware
-
-ROUTES = (view('/8moidkh1/callback', VkCallback),)  # type: ignore
 
 
 class Server:
@@ -11,7 +9,10 @@ class Server:
         self.owner = owner
         self.app = Application(middlewares=[check_group_middleware])
         self.app['owner'] = self.owner
-        self.app.add_routes(ROUTES)
+        self.app.add_routes(
+            (view('/%s/%s/callback' % (owner.cfg['env'],
+                                       owner.cfg['callback_code']),
+                  VkCallback),))  # type: ignore
 
         self.runner = AppRunner(self.app)
         self.loop = asyncio.get_event_loop()
