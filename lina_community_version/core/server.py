@@ -20,7 +20,7 @@ class Server:
         self.server = None
 
     async def start(self):
-        print('create server')
+        self.owner.logger.info('start server')
         await self.runner.setup()
         self.server = await self.loop.create_server(self.runner.server,
                                                     self.owner.args.host,
