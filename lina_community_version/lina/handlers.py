@@ -271,7 +271,17 @@ class AlternateMessageHandler(LinaNewMessageHandler):
     trigger_word = ' или '
 
     async def get_content(self, message: NewMessage):
-        return choice(message.raw_text.split(' или '))
+        return choice(self.maybe_clear_raw_text(message).split(' или '))
+
+    @staticmethod
+    def maybe_clear_raw_text(message: NewMessage) -> str:
+        if message.raw_text is not None:
+            if message.raw_text.endswith(('!','.','?')):
+                return message.raw_text[:-1]
+            else:
+                return message.raw_text
+        else:
+            return ''
 
 
 class CoinMessageHandler(LinaNewMessageHandler):
