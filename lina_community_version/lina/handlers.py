@@ -284,6 +284,6 @@ class CoinMessageHandler(LinaNewMessageHandler):
         elif 90 < result <= 97:
             return 'Встала на ребро'
         elif 45 < result <= 90:
-            return 'решка'
+            return 'Решка'
         else:
-            return 'орел'
+            return 'Орел'
