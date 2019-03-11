@@ -45,7 +45,8 @@ class SimpleDiceMessageHandler(LinaNewMessageHandler):
     trigger_word = 'дайс'
 
     async def get_content(self, _message: NewMessage):
-        return SystemRandom().randint(1, 20)
+        result = SystemRandom().randint(1, 20)
+        return 'тупо 20' if result == 20 else result
 
 
 class RaiseErrorMessageHandler(LinaNewMessageHandler):
@@ -95,6 +96,9 @@ class RegexpDiceMessageHandler(LinaNewMessageHandler):
                 throw_result = str(pool_result_int * number_modifier)
             else:
                 throw_result = str(pool_result_int)
+
+            if amount == 1 and dice == 20 and throw_result == 20:
+                return 'тупо 20'
 
             result = '(%s)%s = %s' % (pool_result_str,
                                       modifier,
@@ -217,7 +221,7 @@ class IntervalRandomMessageHandler(LinaNewMessageHandler):
 
     async def get_content(self, message: NewMessage):
         parse_result = self.pattern.findall(message.raw_text)
-        _min, _max = map(lambda  x: int(x), parse_result[0])
+        _min, _max = map(lambda x: int(x), parse_result[0])
         if _min > _max:
             _min, _max = _max, _min
         result = SystemRandom().randint(_min, _max)
