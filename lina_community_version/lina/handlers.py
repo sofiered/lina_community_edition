@@ -6,7 +6,8 @@ from typing import Optional, TYPE_CHECKING, Pattern
 
 from lina_community_version.core.handlers import BaseMessageHandler
 from lina_community_version.core.messages import NewMessage
-from lina_community_version.core.exceptions import VkSendErrorException
+from lina_community_version.core.exceptions import VkSendErrorException, \
+    VKException, ErrorCodes
 
 if TYPE_CHECKING:
     from lina_community_version.lina.bot import Lina
@@ -44,7 +45,8 @@ class SimpleDiceMessageHandler(LinaNewMessageHandler):
     trigger_word = 'дайс'
 
     async def get_content(self, _message: NewMessage):
-        return SystemRandom().randint(1, 20)
+        result = SystemRandom().randint(1, 20)
+        return 'тупо 20' if result == 20 else result
 
 
 class RaiseErrorMessageHandler(LinaNewMessageHandler):
@@ -95,6 +97,9 @@ class RegexpDiceMessageHandler(LinaNewMessageHandler):
             else:
                 throw_result = str(pool_result_int)
 
+            if amount == 1 and dice == 20 and pool_result_int == 20:
+                return 'тупо 20'
+
             result = '(%s)%s = %s' % (pool_result_str,
                                       modifier,
                                       throw_result)
@@ -128,3 +133,135 @@ class MeowMessageHandler(LinaNewMessageHandler):
                                         pair_id,
                                         snow_id)]
         return choice(cats_id)
+
+
+class WhereArePostsMessageHandler(LinaNewMessageHandler):
+    trigger_word = 'посты'
+    answers = [
+        'Сегодня будет, но позже',
+        'Я уже пишу',
+        'Вечером',
+        'Я хз, что писать',
+        'Вдохновения нет((('
+    ]
+
+    async def get_content(self, message: NewMessage):
+        return choice(self.answers)
+
+
+class InfoMessageHandler(LinaNewMessageHandler):
+    trigger_word = 'инфа'
+
+    async def get_content(self, message: NewMessage):
+        info = SystemRandom().randint(1, 101)
+        if info == 100:
+            return 'инфа сотка'
+        elif info == 101:
+            return 'инфа 146%'
+        else:
+            return 'инфа %s%%' % info
+
+
+class WhoIsGuiltyMessageHandler(LinaNewMessageHandler):
+    trigger_word = 'кто виноват'
+    guilty = [
+        'Да это все массонский заговор',
+        'Путин, кто же еще',
+        'Это происки сатаны',
+        'Рептилоиды, они же управляют всей планетой',
+        'Судьба...',
+        'Не знаю, но точно не я!',
+        'Это все я, прости',
+        'Глобальное потепление',
+        'Ты сам. А кто же еще?',
+        'Телевизор',
+        'Интернет',
+        'Тупые школьники',
+        'Тыковка не виновата',
+        'Это все хозяин',
+        'Это тыковка'
+    ]
+
+    async def get_content(self, message: NewMessage):
+        if SystemRandom().randint(1, 10) == 1:
+            try:
+                maybe_guilty = await self.service.api.get_conversation_members(
+                    message.peer_id)
+                return 'Это %s во всем виноват' % choice(maybe_guilty)
+            except VKException as e:
+                if e.code == ErrorCodes.ADMIN_PERMISSION_REQUIRED.value:
+                    self.service.logger.warn(
+                        'code %s, Admin permissions required!' % e.code)
+                else:
+                    raise e
+        return choice(self.guilty)
+
+
+class WhoIsChosenMessageHandler(LinaNewMessageHandler):
+    trigger_word = 'кто избран'
+    conference_id_modifier = 2000000000
+
+    async def get_content(self, message: NewMessage):
+        if message.peer_id < self.conference_id_modifier:
+            return 'Ты избран, здесь же больше никого нет'
+        try:
+            chosen_one = await self.service.api.get_conversation_members(
+                message.peer_id)
+            return '%s, ты избран!' % choice(chosen_one)
+        except VKException as e:
+            self.service.logger.error(e)
+            if e.code == ErrorCodes.ADMIN_PERMISSION_REQUIRED.value:
+                return 'Для доступа к списку участников беседы ' \
+                       'мне нужны админские права'
+
+
+class IntervalRandomMessageHandler(LinaNewMessageHandler):
+    trigger_word = 'рандом'
+    pattern: Pattern[str] = re.compile(r'от\s*(\d+)\s*до\s*(\d+)?')
+
+    async def get_content(self, message: NewMessage):
+        if message.raw_text is not None:
+            parse_result = self.pattern.findall(message.raw_text)
+            _min, _max = map(lambda x: int(x), parse_result[0])
+            if _min > _max:
+                _min, _max = _max, _min
+            result = SystemRandom().randint(_min, _max)
+            return 'от %s до %s: %s' % (_min, _max, result)
+        else:
+            raise VkSendErrorException
+
+
+class SayHelloMessageHandler(LinaNewMessageHandler):
+    trigger_word = 'привет'
+    hellos = ['Привет',
+              'Здравствуйте',
+              'Хай!',
+              'Йоу!'
+              ]
+
+    async def get_content(self, message: NewMessage):
+        return 'Привет, мастер!' \
+            if message.from_id == self.service.cfg['admin_id'] \
+            else choice(self.hellos)
+
+
+class LoveYouMessageHandler(LinaNewMessageHandler):
+    triggers = ('люблю тебя', 'я тебя люблю')
+    friendzone = ['Ты мне как брат',
+                  'Я тоже тебя люблю, как брата',
+                  'Ты очень хороший друг']
+
+    async def is_triggered(self, message: NewMessage) -> bool:
+        if message.raw_text is not None:
+            return any(keyword in message.raw_text
+                       for keyword in self.triggers)
+        else:
+            return False
+
+    async def get_content(self, message: NewMessage):
+        if message.from_id == self.service.cfg['admin_id']:
+            return 'Я тоже тебя люблю <3'
+        elif message.from_id in self.service.cfg['friend_zone']:
+            return choice(self.friendzone)
+        else:
+            return 'А я тебя нет'

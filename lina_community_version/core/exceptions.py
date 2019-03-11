@@ -1,3 +1,10 @@
+from enum import Enum
+
+
+class ErrorCodes(Enum):
+    ADMIN_PERMISSION_REQUIRED = 917
+
+
 class VKException(Exception):
     def __init__(self, error_text: str, error_code: int) -> None:
         self.text = error_text
