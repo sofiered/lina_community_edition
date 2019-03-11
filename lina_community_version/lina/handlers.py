@@ -7,7 +7,7 @@ from typing import Optional, TYPE_CHECKING, Pattern
 from lina_community_version.core.handlers import BaseMessageHandler
 from lina_community_version.core.messages import NewMessage
 from lina_community_version.core.exceptions import VkSendErrorException, \
-    VKException
+    VKException, ErrorCodes
 
 if TYPE_CHECKING:
     from lina_community_version.lina.bot import Lina
@@ -182,8 +182,11 @@ class WhoIsGuiltyMessageHandler(LinaNewMessageHandler):
                     message.peer_id)
                 return 'Это %s во всем виноват' % choice(maybe_guilty)
             except VKException as e:
-                self.service.logger.warn(
-                    'code %s, Admin permissions required!' % e.code)
+                if e.code == ErrorCodes.ADMIN_PERMISSION_REQUIRED.value:
+                    self.service.logger.warn(
+                        'code %s, Admin permissions required!' % e.code)
+                else:
+                    raise e
         return choice(self.guilty)
 
 
@@ -197,5 +200,6 @@ class WhoIsChosenMessageHandler(LinaNewMessageHandler):
             return '%s, ты избран!' % choice(chosen_one)
         except VKException as e:
             self.service.logger.error(e)
-            return 'Для доступа к списку участников беседы ' \
-                   'мне нужны админские права'
+            if e.code == ErrorCodes.ADMIN_PERMISSION_REQUIRED.value:
+                return 'Для доступа к списку участников беседы ' \
+                       'мне нужны админские права'
