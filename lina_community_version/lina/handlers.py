@@ -6,7 +6,8 @@ from typing import Optional, TYPE_CHECKING, Pattern
 
 from lina_community_version.core.handlers import BaseMessageHandler
 from lina_community_version.core.messages import NewMessage
-from lina_community_version.core.exceptions import VkSendErrorException
+from lina_community_version.core.exceptions import VkSendErrorException, \
+    VKException
 
 if TYPE_CHECKING:
     from lina_community_version.lina.bot import Lina
@@ -128,3 +129,71 @@ class MeowMessageHandler(LinaNewMessageHandler):
                                         pair_id,
                                         snow_id)]
         return choice(cats_id)
+
+
+class WhereArePostsMessageHandler(LinaNewMessageHandler):
+    trigger_word = 'посты'
+    answers = [
+        'Сегодня будет, но позже',
+        'Я уже пишу',
+        'Вечером',
+        'Я хз, что писать',
+        'Вдохновения нет((('
+    ]
+
+    async def get_content(self, message: NewMessage):
+        return choice(self.answers)
+
+
+class InfoMessageHandler(LinaNewMessageHandler):
+    trigger_word = 'инфа'
+
+    async def get_content(self, message: NewMessage):
+        info = SystemRandom().randint(1, 101)
+        if info == 100:
+            return 'инфа сотка'
+        elif info == 101:
+            return 'инфа 146%'
+
+
+class WhoIsGuiltyMessageHandler(LinaNewMessageHandler):
+    trigger_word = 'кто виноват'
+    guilty = [
+        'Да это все массонский заговор',
+        'Путин, кто же еще',
+        'Это происки сатаны',
+        'Рептилоиды, они же управляют всей планетой',
+        'Судьба...',
+        'Не знаю, но точно не я!',
+        'Это все я, прости',
+        'Глобальное потепление',
+        'Ты сам. А кто же еще?',
+        'Телевизор',
+        'Интернет',
+        'Тупые школьники'
+    ]
+
+    async def get_content(self, message: NewMessage):
+        if SystemRandom().randint(1, 10) == 1:
+            try:
+                maybe_guilty = await self.service.api.get_conversation_members(
+                    message.peer_id)
+                return 'Это %s во всем виноват' % choice(maybe_guilty)
+            except VKException as e:
+                self.service.logger.warn(
+                    'code %s, Admin permissions required!' % e.code)
+        return choice(self.guilty)
+
+
+class WhoIsChosenMessageHandler(LinaNewMessageHandler):
+    trigger_word = 'кто избран'
+
+    async def get_content(self, message: NewMessage):
+        try:
+            chosen_one = await self.service.api.get_conversation_members(
+                message.peer_id)
+            return '%s, ты избран!' % choice(chosen_one)
+        except VKException as e:
+            self.service.logger.error(e)
+            return 'Для доступа к списку участников беседы ' \
+                   'мне нужны админские права'
