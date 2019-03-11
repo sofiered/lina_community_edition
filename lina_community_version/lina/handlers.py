@@ -154,6 +154,8 @@ class InfoMessageHandler(LinaNewMessageHandler):
             return 'инфа сотка'
         elif info == 101:
             return 'инфа 146%'
+        else:
+            return 'инфа %s%%' % info
 
 
 class WhoIsGuiltyMessageHandler(LinaNewMessageHandler):
