@@ -265,3 +265,10 @@ class LoveYouMessageHandler(LinaNewMessageHandler):
             return choice(self.friendzone)
         else:
             return 'А я тебя нет'
+
+
+class AlternateMessagehandler(LinaNewMessageHandler):
+    trigger_word = ' или '
+
+    async def get_content(self, message: NewMessage):
+        return choice(message.raw_text.split(' или '))
