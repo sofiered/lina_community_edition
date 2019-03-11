@@ -226,3 +226,17 @@ class IntervalRandomMessageHandler(LinaNewMessageHandler):
             _min, _max = _max, _min
         result = SystemRandom().randint(_min, _max)
         return 'от %s до %s: %s' % (_min, _max, result)
+
+
+class SayHelloMessageHandler(LinaNewMessageHandler):
+    trigger_word = 'привет'
+    hellos = ['Привет',
+              'Здравствуйте',
+              'Хай!',
+              'Йоу!'
+              ]
+
+    async def get_content(self, message: NewMessage):
+        return 'Привет, мастер!' \
+            if message.from_id == self.service.cfg['admin_id'] \
+            else choice(self.hellos)
