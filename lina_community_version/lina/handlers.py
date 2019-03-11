@@ -220,12 +220,15 @@ class IntervalRandomMessageHandler(LinaNewMessageHandler):
     pattern: Pattern[str] = re.compile(r'от\s*(\d+)\s*до\s*(\d+)?')
 
     async def get_content(self, message: NewMessage):
-        parse_result = self.pattern.findall(message.raw_text)
-        _min, _max = map(lambda x: int(x), parse_result[0])
-        if _min > _max:
-            _min, _max = _max, _min
-        result = SystemRandom().randint(_min, _max)
-        return 'от %s до %s: %s' % (_min, _max, result)
+        if message.raw_text is not None:
+            parse_result = self.pattern.findall(message.raw_text)
+            _min, _max = map(lambda x: int(x), parse_result[0])
+            if _min > _max:
+                _min, _max = _max, _min
+            result = SystemRandom().randint(_min, _max)
+            return 'от %s до %s: %s' % (_min, _max, result)
+        else:
+            raise VkSendErrorException
 
 
 class SayHelloMessageHandler(LinaNewMessageHandler):
@@ -249,7 +252,11 @@ class LoveYouMessageHandler(LinaNewMessageHandler):
                   'Ты очень хороший друг']
 
     async def is_triggered(self, message: NewMessage) -> bool:
-        return any(keyword in message.raw_text for keyword in self.triggers)
+        if message.raw_text is not None:
+            return any(keyword in message.raw_text
+                       for keyword in self.triggers)
+        else:
+            return False
 
     async def get_content(self, message: NewMessage):
         if message.from_id == self.service.cfg['admin_id']:
