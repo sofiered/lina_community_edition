@@ -240,3 +240,21 @@ class SayHelloMessageHandler(LinaNewMessageHandler):
         return 'Привет, мастер!' \
             if message.from_id == self.service.cfg['admin_id'] \
             else choice(self.hellos)
+
+
+class LoveYouMessageHandler(LinaNewMessageHandler):
+    triggers = ('люблю тебя', 'я тебя люблю')
+    friendzone = ['Ты мне как брат',
+                  'Я тоже тебя люблю, как брата',
+                  'Ты очень хороший друг']
+
+    async def is_triggered(self, message: NewMessage) -> bool:
+        return any(keyword in message.raw_text for keyword in self.triggers)
+
+    async def get_content(self, message: NewMessage):
+        if message.from_id == self.service.cfg['admin_id']:
+            return 'Я тоже тебя люблю <3'
+        elif message.from_id in self.service.cfg['friend_zone']:
+            return choice(self.friendzone)
+        else:
+            return 'А я тебя нет'
