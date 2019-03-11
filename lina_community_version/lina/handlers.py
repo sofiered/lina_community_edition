@@ -97,7 +97,7 @@ class RegexpDiceMessageHandler(LinaNewMessageHandler):
             else:
                 throw_result = str(pool_result_int)
 
-            if amount == 1 and dice == 20 and throw_result == 20:
+            if amount == 1 and dice == 20 and pool_result_int == 20:
                 return 'тупо 20'
 
             result = '(%s)%s = %s' % (pool_result_str,
