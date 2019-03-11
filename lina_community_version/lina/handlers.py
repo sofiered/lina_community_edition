@@ -267,8 +267,23 @@ class LoveYouMessageHandler(LinaNewMessageHandler):
             return 'А я тебя нет'
 
 
-class AlternateMessagehandler(LinaNewMessageHandler):
+class AlternateMessageHandler(LinaNewMessageHandler):
     trigger_word = ' или '
 
     async def get_content(self, message: NewMessage):
         return choice(message.raw_text.split(' или '))
+
+
+class CoinMessageHandler(LinaNewMessageHandler):
+    trigger_word = 'монетка'
+
+    async def get_content(self, message: NewMessage):
+        result = SystemRandom().randint(1, 100)
+        if 97 < result <= 100:
+            return 'Зависла в воздухе'
+        elif 90 < result <= 97:
+            return 'Встала на ребро'
+        elif 45 < result <= 90:
+            return 'решка'
+        else:
+            return 'орел'
