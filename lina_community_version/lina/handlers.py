@@ -192,8 +192,11 @@ class WhoIsGuiltyMessageHandler(LinaNewMessageHandler):
 
 class WhoIsChosenMessageHandler(LinaNewMessageHandler):
     trigger_word = 'кто избран'
+    conference_id_modifier = 2000000000
 
     async def get_content(self, message: NewMessage):
+        if message.peer_id < self.conference_id_modifier:
+            return 'Ты избран, здесь же больше никого нет'
         try:
             chosen_one = await self.service.api.get_conversation_members(
                 message.peer_id)
@@ -203,3 +206,16 @@ class WhoIsChosenMessageHandler(LinaNewMessageHandler):
             if e.code == ErrorCodes.ADMIN_PERMISSION_REQUIRED.value:
                 return 'Для доступа к списку участников беседы ' \
                        'мне нужны админские права'
+
+
+class IntervalRandomMessageHandler(LinaNewMessageHandler):
+    trigger_word = 'рандом'
+    pattern: Pattern[str] = re.compile(r'от\s*(\d+)\s*до\s*(\d+)?')
+
+    async def get_content(self, message: NewMessage):
+        parse_result = self.pattern.findall(message.raw_text)
+        _min, _max = map(lambda  x: int(x), parse_result[0])
+        if _min > _max:
+            _min, _max = _max, _min
+        result = SystemRandom().randint(_min, _max)
+        return 'от %s до %s: %s' % (_min, _max, result)
