@@ -70,7 +70,7 @@ class Lina:
     async def process_message(self,
                               message: Union[Confirmation,
                                              NewMessage]) -> Response:
-        self.logger.info('<-- recieved message: ', message)
+        self.logger.info('<-- recieved message: %s', message)
         if isinstance(message, Confirmation):
             return await self.process_confirmation_message(message)
         elif isinstance(message, NewMessage):

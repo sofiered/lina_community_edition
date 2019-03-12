@@ -33,9 +33,26 @@ class NewMessage(BaseMessage):
     attachments: List[Any]
     is_hidden: bool
     raw_text: Optional[str] = None
+    reply_message: Optional[Dict[str, Any]] = None
 
     def __post_init__(self):
         self.text = self.text.lower()
+
+    def get_text_or_attach(self) -> str:
+        if self.text != '':
+            return self.text
+        else:
+            return ', '.join([attach['type'] for attach in self.attachments])
+
+    def __str__(self):
+        return "%s --- User %s say: %s" % (self.peer_id,
+                                           self.from_id,
+                                           self.get_text_or_attach())
+
+    def __repr__(self):
+        return 'Message in conversation %s from user %s: %s' % (self.peer_id,
+                                                                self.from_id,
+                                                                self.text)
 
 
 def message_factory(_type: str,

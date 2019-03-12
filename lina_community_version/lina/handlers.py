@@ -265,3 +265,35 @@ class LoveYouMessageHandler(LinaNewMessageHandler):
             return choice(self.friendzone)
         else:
             return 'А я тебя нет'
+
+
+class AlternateMessageHandler(LinaNewMessageHandler):
+    trigger_word = ' или '
+
+    async def get_content(self, message: NewMessage):
+        return choice(self.maybe_clear_raw_text(message).split(' или '))
+
+    @staticmethod
+    def maybe_clear_raw_text(message: NewMessage) -> str:
+        if message.raw_text is not None:
+            if message.raw_text.endswith(('!', '.', '?')):
+                return message.raw_text[:-1]
+            else:
+                return message.raw_text
+        else:
+            return ''
+
+
+class CoinMessageHandler(LinaNewMessageHandler):
+    trigger_word = 'монетка'
+
+    async def get_content(self, message: NewMessage):
+        result = SystemRandom().randint(1, 100)
+        if 97 < result <= 100:
+            return 'Зависла в воздухе'
+        elif 90 < result <= 97:
+            return 'Встала на ребро'
+        elif 45 < result <= 90:
+            return 'Решка'
+        else:
+            return 'Орел'
