@@ -16,7 +16,7 @@ from lina_community_version.core.handlers import BaseMessageHandler
 
 
 class Lina:
-    _regexp_template = r'(\[club%s\|.+\]|%s)'
+    _regexp_template = r'(^|\s)(\[club%s\|.+\]|%s)(,|\s|$)'
 
     def __init__(self):
         self._handler_class: Optional[BaseMessageHandler] = None
