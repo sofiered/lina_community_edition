@@ -28,6 +28,7 @@ class NewMessage(BaseMessage):
     text: str
     conversation_message_id: int
     fwd_messages: List[Any]
+    reply_message: Optional[Dict[str, Any]]
     important: bool
     random_id: int
     attachments: List[Any]
