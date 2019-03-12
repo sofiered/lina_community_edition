@@ -28,12 +28,12 @@ class NewMessage(BaseMessage):
     text: str
     conversation_message_id: int
     fwd_messages: List[Any]
-    reply_message: Optional[Dict[str, Any]] = None
     important: bool
     random_id: int
     attachments: List[Any]
     is_hidden: bool
     raw_text: Optional[str] = None
+    reply_message: Optional[Dict[str, Any]] = None
 
     def __post_init__(self):
         self.text = self.text.lower()
