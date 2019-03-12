@@ -37,6 +37,16 @@ class NewMessage(BaseMessage):
     def __post_init__(self):
         self.text = self.text.lower()
 
+    def __str__(self):
+        return "%s --- User %s say: %s" % (self.peer_id,
+                                           self.from_id,
+                                           self.text)
+
+    def __repr__(self):
+        return 'Message in conversation %s from user %s: %s' % (self.peer_id,
+                                                                self.from_id,
+                                                                self.text)
+
 
 def message_factory(_type: str,
                     data: Dict[str, Any]) -> Union[NewMessage, Confirmation]:

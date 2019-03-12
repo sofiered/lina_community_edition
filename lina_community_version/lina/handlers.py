@@ -276,7 +276,7 @@ class AlternateMessageHandler(LinaNewMessageHandler):
     @staticmethod
     def maybe_clear_raw_text(message: NewMessage) -> str:
         if message.raw_text is not None:
-            if message.raw_text.endswith(('!','.','?')):
+            if message.raw_text.endswith(('!', '.', '?')):
                 return message.raw_text[:-1]
             else:
                 return message.raw_text
