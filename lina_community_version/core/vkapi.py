@@ -56,7 +56,7 @@ class VkApi:
                            peer_id: int,
                            message: str) -> Dict[str, Any]:
         self.owner.logger.info(
-            'send message: peer_id %s, message %s' % (peer_id,
+            '--> send message: peer_id %s, message %s' % (peer_id,
                                                       message))
         return await self.api.messages.send(peer_id=peer_id,
                                             message=message,
@@ -65,7 +65,7 @@ class VkApi:
     @vk_exception
     async def send_sticker(self, peer_id: int, sticker_id: int):
         self.owner.logger.info(
-            'send sticker: peer_id %s, sticker_id %s' % (peer_id,
+            '--> send sticker: peer_id %s, sticker_id %s' % (peer_id,
                                                          sticker_id))
         return await self.api.messages.send(peer_id=peer_id,
                                             sticker_id=sticker_id,
