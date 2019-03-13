@@ -42,6 +42,8 @@ class NewMessage(BaseMessage):
     def get_text_or_attach(self) -> str:
         if self.text != '':
             return self.text
+        elif self.action is not None:
+            return str(self.action.get('type'))
         else:
             return ', '.join([attach['type'] for attach in self.attachments])
 
