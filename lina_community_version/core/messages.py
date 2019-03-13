@@ -34,6 +34,7 @@ class NewMessage(BaseMessage):
     is_hidden: bool
     raw_text: Optional[str] = None
     reply_message: Optional[Dict[str, Any]] = None
+    action: Optional[Dict[str, Any]] = None
 
     def __post_init__(self):
         self.text = self.text.lower()
