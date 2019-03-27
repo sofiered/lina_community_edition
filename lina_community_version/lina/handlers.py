@@ -26,9 +26,11 @@ class LinaNewMessageHandler(BaseMessageHandler):
             return self.trigger_word in message.raw_text
 
     async def _handler(self, message: NewMessage):
-        await self.service.api.send_message(
-            peer_id=message.peer_id,
-            message=await self.get_content(message))
+        content = await self.get_content(message)
+        if content:
+            await self.service.api.send_message(
+                peer_id=message.peer_id,
+                message=content)
 
     async def get_content(self, message: NewMessage):
         raise NotImplementedError
@@ -221,12 +223,15 @@ class IntervalRandomMessageHandler(LinaNewMessageHandler):
 
     async def get_content(self, message: NewMessage):
         if message.raw_text is not None:
-            parse_result = self.pattern.findall(message.raw_text)
-            _min, _max = map(lambda x: int(x), parse_result[0])
-            if _min > _max:
-                _min, _max = _max, _min
-            result = SystemRandom().randint(_min, _max)
-            return 'от %s до %s: %s' % (_min, _max, result)
+            try:
+                parse_result = self.pattern.findall(message.raw_text)
+                _min, _max = map(lambda x: int(x), parse_result[0])
+                if _min > _max:
+                    _min, _max = _max, _min
+                result = SystemRandom().randint(_min, _max)
+                return 'от %s до %s: %s' % (_min, _max, result)
+            except (IndexError, ValueError):
+                return
         else:
             raise VkSendErrorException
 
