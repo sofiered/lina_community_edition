@@ -294,9 +294,11 @@ class CoinMessageHandler(LinaNewMessageHandler):
 
     async def get_content(self, message: NewMessage):
         result = SystemRandom().randint(1, 100)
-        if 97 < result <= 100:
+        if 99 < result <= 100:
+            return 'Монетка взорвалась и убила тебя'
+        if 96 < result <= 99:
             return 'Зависла в воздухе'
-        elif 90 < result <= 97:
+        elif 90 < result <= 96:
             return 'Встала на ребро'
         elif 45 < result <= 90:
             return 'Решка'
