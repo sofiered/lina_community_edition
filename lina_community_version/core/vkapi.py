@@ -1,6 +1,6 @@
 from random import randint
 from typing import List, Callable, Awaitable, Any, Dict
-from aiohttp import ClientSession
+from aiohttp import ClientSession, ContentTypeError
 from aiovk import API, TokenSession
 
 from .profiles import UserProfile
@@ -37,11 +37,19 @@ class LinaTokenSession(TokenSession):
 
         # Send request
         async with ClientSession() as session:
-            async with session.get(
-                    self.REQUEST_URL + method_name,
-                    params=params or {},
-                    timeout=timeout or self.timeout) as response:
-                return await response.json()
+            response = None
+            try:
+                async with session.get(
+                        self.REQUEST_URL + method_name,
+                        params=params or {},
+                        timeout=timeout or self.timeout) as response:
+                    return await response.json()
+            except ContentTypeError as e:
+                if response is not None:
+                    if response.status != 200:
+                        raise VKException(error_code=response.status,
+                                          error_text='http error')
+                raise e
 
 
 class VkApi:

@@ -26,11 +26,15 @@ class LinaNewMessageHandler(BaseMessageHandler):
             return self.trigger_word in message.raw_text
 
     async def _handler(self, message: NewMessage):
-        content = await self.get_content(message)
-        if content:
-            await self.service.api.send_message(
-                peer_id=message.peer_id,
-                message=content)
+        try:
+            content = await self.get_content(message)
+            if content:
+                await self.service.api.send_message(
+                    peer_id=message.peer_id,
+                    message=content)
+        except VKException as e:
+            if e.code == ErrorCodes.URI_TOO_LONG.value:
+                raise VkSendErrorException
 
     async def get_content(self, message: NewMessage):
         raise NotImplementedError
@@ -74,11 +78,7 @@ class RegexpDiceMessageHandler(LinaNewMessageHandler):
             dice: int = int(parse_result[0][1])
             modifier: str = parse_result[0][2]
 
-            if amount + dice > 1000:
-                raise VkSendErrorException
-            if amount < 1:
-                raise VkSendErrorException
-            if dice < 1:
+            if amount < 1 or dice < 1:
                 raise VkSendErrorException
             dice_pool = [SystemRandom().randint(1, dice)
                          # if not (self.bot.is_cheating
@@ -100,7 +100,9 @@ class RegexpDiceMessageHandler(LinaNewMessageHandler):
                 throw_result = str(pool_result_int)
 
             if amount == 1 and dice == 20 and pool_result_int == 20:
-                return 'тупо 20' + modifier
+                return 'тупо 20%s%s' % (modifier,
+                                        ('=%s' % throw_result)
+                                        if modifier != '' else '')
 
             result = '(%s)%s = %s' % (pool_result_str,
                                       modifier,
