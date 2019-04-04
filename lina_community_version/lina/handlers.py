@@ -63,18 +63,26 @@ class RaiseErrorMessageHandler(LinaNewMessageHandler):
 
 
 class RegexpDiceMessageHandler(LinaNewMessageHandler):
-    pattern: Pattern[str] = re.compile(r'(\d+)[dдк](\d+)\s*([xх/*+-]\d+)?')
+    pattern: Pattern[str] = re.compile(
+        r'(^|[\d\s]+)[dдк](\d+)\s*([xх/*+-]\d+)?')
 
     async def is_triggered(self, message: NewMessage) -> bool:
         if message.raw_text is not None:
-            return self.pattern.search(message.raw_text) is not None
+            result = self.pattern.search(message.raw_text) is not None
+            return result
         else:
             raise VkSendErrorException
+
+    @staticmethod
+    def cast_amount(amount: str) -> int:
+        amount = amount.strip()
+        return int(amount) if amount != '' else 1
+
 
     async def get_content(self, message: NewMessage):
         if message.raw_text is not None:
             parse_result = self.pattern.findall(message.raw_text)
-            amount: int = int(parse_result[0][0])
+            amount: int = self.cast_amount(parse_result[0][0])
             dice: int = int(parse_result[0][1])
             modifier: str = parse_result[0][2]
 
