@@ -3,6 +3,7 @@ from enum import Enum
 
 class ErrorCodes(Enum):
     ADMIN_PERMISSION_REQUIRED = 917
+    URI_TOO_LONG = 414
 
 
 class VKException(Exception):
