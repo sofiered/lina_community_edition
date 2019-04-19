@@ -84,7 +84,6 @@ class RegexpDiceMessageHandler(LinaNewMessageHandler):
         amount = amount.strip()
         return int(amount) if amount != '' else 1
 
-
     async def get_content(self, message: NewMessage):
         if message.raw_text is not None:
             parse_result = self.pattern.findall(message.raw_text)
@@ -320,3 +319,11 @@ class CoinMessageHandler(LinaNewMessageHandler):
             return 'Решка'
         else:
             return 'Орел'
+
+
+class TimeoutHandler(LinaNewMessageHandler):
+    trigger_word = 'таймаут'
+
+    async def get_content(self, message: NewMessage):
+        await sleep(15)
+        return 'Прошло 15 секунд'
