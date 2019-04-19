@@ -23,6 +23,8 @@ class LinaNewMessageHandler(BaseMessageHandler):
         try:
             await wait_for(super().handler(message), timeout=timeout_error)
         except TimeoutError:
+            self.service.logger.error('Timeout error for message %s' %
+                                      message.raw_text)
             raise VkSendErrorException
 
     async def is_triggered(self, message: NewMessage) -> bool:
