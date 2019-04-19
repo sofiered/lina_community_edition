@@ -1,5 +1,5 @@
 import re
-
+from asyncio import wait_for, sleep, TimeoutError
 from itertools import chain
 from random import SystemRandom, choice
 from typing import Optional, TYPE_CHECKING, Pattern
@@ -18,6 +18,12 @@ class LinaNewMessageHandler(BaseMessageHandler):
         self.service = service
 
     trigger_word: Optional[str] = None
+
+    async def handler(self, message: NewMessage, timeout_error: int = 10):
+        try:
+            await wait_for(super().handler(message), timeout=timeout_error)
+        except TimeoutError:
+            raise VkSendErrorException
 
     async def is_triggered(self, message: NewMessage) -> bool:
         if self.trigger_word is None or message.raw_text is None:
