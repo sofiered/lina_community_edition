@@ -1,5 +1,6 @@
 import re
-from asyncio import wait_for, sleep, TimeoutError
+from asyncio import wait_for, sleep, TimeoutError, get_event_loop
+from functools import partial
 from itertools import chain
 from random import SystemRandom, choice
 from typing import Optional, TYPE_CHECKING, Pattern
@@ -86,6 +87,14 @@ class RegexpDiceMessageHandler(LinaNewMessageHandler):
         amount = amount.strip()
         return int(amount) if amount != '' else 1
 
+    @staticmethod
+    def get_dice_pool(dice: int, amount: int):
+        return [SystemRandom().randint(1, dice)
+                # if not (self.bot.is_cheating
+                # and 'ч' in message.raw_text)
+                # else dice
+                for _ in range(amount)]
+
     async def get_content(self, message: NewMessage):
         if message.raw_text is not None:
             parse_result = self.pattern.findall(message.raw_text)
@@ -95,11 +104,13 @@ class RegexpDiceMessageHandler(LinaNewMessageHandler):
 
             if amount < 1 or dice < 1:
                 raise VkSendErrorException
-            dice_pool = [SystemRandom().randint(1, dice)
-                         # if not (self.bot.is_cheating
-                         # and 'ч' in message.raw_text)
-                         # else dice
-                         for _ in range(amount)]
+            get_dice_pool = partial(self.get_dice_pool,
+                                    dice=dice,
+                                    amount=amount)
+
+            dice_pool = await wait_for(get_event_loop().run_in_executor(
+                None, get_dice_pool),
+                timeout=self.service.cfg['request_timeout'])
             pool_result_str = ' + '.join(map(str, dice_pool))
             pool_result_int = sum(dice_pool)
             number_modifier = int(modifier[1:]) if modifier != '' else 0
