@@ -1,9 +1,8 @@
 import re
-from asyncio import wait_for, sleep, TimeoutError, get_event_loop
-from functools import partial
+from asyncio import wait_for, sleep, TimeoutError
 from itertools import chain
 from random import SystemRandom, choice
-from typing import Optional, TYPE_CHECKING, Pattern
+from typing import Optional, TYPE_CHECKING, Pattern, List
 
 from lina_community_version.core.handlers import BaseMessageHandler
 from lina_community_version.core.messages import NewMessage
@@ -87,13 +86,17 @@ class RegexpDiceMessageHandler(LinaNewMessageHandler):
         amount = amount.strip()
         return int(amount) if amount != '' else 1
 
+    async def get_dice_pool(self, dice: int, amount: int) -> List[int]:
+        result = list()
+        for i in range(amount * 2):
+            result.append(await self.get_dice(dice))
+        self.service.logger.info(result)
+        SystemRandom().shuffle(result)
+        return result[:amount]
+
     @staticmethod
-    def get_dice_pool(dice: int, amount: int):
-        return [SystemRandom().randint(1, dice)
-                # if not (self.bot.is_cheating
-                # and 'ч' in message.raw_text)
-                # else dice
-                for _ in range(amount)]
+    async def get_dice(dice: int) -> int:
+        return SystemRandom().randint(1, dice)
 
     async def get_content(self, message: NewMessage):
         if message.raw_text is not None:
@@ -104,12 +107,9 @@ class RegexpDiceMessageHandler(LinaNewMessageHandler):
 
             if amount < 1 or dice < 1:
                 raise VkSendErrorException
-            get_dice_pool = partial(self.get_dice_pool,
-                                    dice=dice,
-                                    amount=amount)
 
-            dice_pool = await wait_for(get_event_loop().run_in_executor(
-                None, get_dice_pool),
+            dice_pool: List[int] = await wait_for(  # type: ignore
+                self.get_dice_pool,
                 timeout=self.service.cfg['request_timeout'])
             pool_result_str = ' + '.join(map(str, dice_pool))
             pool_result_int = sum(dice_pool)
@@ -162,7 +162,7 @@ class MeowMessageHandler(LinaNewMessageHandler):
                                         lovely_ids,
                                         pair_id,
                                         snow_id)]
-        return choice(cats_id)
+        return SystemRandom().choice(cats_id)
 
 
 class WhereArePostsMessageHandler(LinaNewMessageHandler):
@@ -176,7 +176,7 @@ class WhereArePostsMessageHandler(LinaNewMessageHandler):
     ]
 
     async def get_content(self, message: NewMessage):
-        return choice(self.answers)
+        return SystemRandom().choice(self.answers)
 
 
 class InfoMessageHandler(LinaNewMessageHandler):
@@ -224,7 +224,7 @@ class WhoIsGuiltyMessageHandler(LinaNewMessageHandler):
                         'code %s, Admin permissions required!' % e.code)
                 else:
                     raise e
-        return choice(self.guilty)
+        return SystemRandom().choice(self.guilty)
 
 
 class WhoIsChosenMessageHandler(LinaNewMessageHandler):
@@ -237,7 +237,7 @@ class WhoIsChosenMessageHandler(LinaNewMessageHandler):
         try:
             chosen_one = await self.service.api.get_conversation_members(
                 message.peer_id)
-            return '%s, ты избран!' % choice(chosen_one)
+            return '%s, ты избран!' % SystemRandom().choice(chosen_one)
         except VKException as e:
             self.service.logger.error(e)
             if e.code == ErrorCodes.ADMIN_PERMISSION_REQUIRED.value:
@@ -275,7 +275,7 @@ class SayHelloMessageHandler(LinaNewMessageHandler):
     async def get_content(self, message: NewMessage):
         return 'Привет, мастер!' \
             if message.from_id == self.service.cfg['admin_id'] \
-            else choice(self.hellos)
+            else SystemRandom().choice(self.hellos)
 
 
 class LoveYouMessageHandler(LinaNewMessageHandler):
@@ -295,7 +295,7 @@ class LoveYouMessageHandler(LinaNewMessageHandler):
         if message.from_id == self.service.cfg['admin_id']:
             return 'Я тоже тебя люблю <3'
         elif message.from_id in self.service.cfg['friend_zone']:
-            return choice(self.friendzone)
+            return SystemRandom().choice(self.friendzone)
         else:
             return 'А я тебя нет'
 
@@ -304,7 +304,8 @@ class AlternateMessageHandler(LinaNewMessageHandler):
     trigger_word = ' или '
 
     async def get_content(self, message: NewMessage):
-        return choice(self.maybe_clear_raw_text(message).split(' или '))
+        return SystemRandom().choice(
+            self.maybe_clear_raw_text(message).split(' или '))
 
     @staticmethod
     def maybe_clear_raw_text(message: NewMessage) -> str:
