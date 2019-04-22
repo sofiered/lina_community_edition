@@ -19,7 +19,8 @@ class LinaNewMessageHandler(BaseMessageHandler):
 
     trigger_word: Optional[str] = None
 
-    async def handler(self, message: NewMessage, timeout_error: int = 10):
+    async def handler(self, message: NewMessage):
+        timeout_error = self.service.cfg['request_timeout']
         try:
             await wait_for(super().handler(message), timeout=timeout_error)
         except TimeoutError:
@@ -89,14 +90,15 @@ class RegexpDiceMessageHandler(LinaNewMessageHandler):
     async def get_dice_pool(self, dice: int, amount: int) -> List[int]:
         result = list()
         for i in range(amount * 2):
-            result.append(await self.get_dice(dice))
+            result.append(self.get_dice(dice))
+            await sleep(0)
         self.service.logger.info(result)
         SystemRandom().shuffle(result)
         return result[:amount]
 
-    @staticmethod
-    async def get_dice(dice: int) -> int:
-        return SystemRandom().randint(1, dice)
+    def get_dice(self, dice: int) -> int:
+        result = SystemRandom().randint(1, dice)
+        return result
 
     async def get_content(self, message: NewMessage):
         if message.raw_text is not None:
@@ -108,9 +110,7 @@ class RegexpDiceMessageHandler(LinaNewMessageHandler):
             if amount < 1 or dice < 1:
                 raise VkSendErrorException
 
-            dice_pool: List[int] = await wait_for(  # type: ignore
-                self.get_dice_pool,
-                timeout=self.service.cfg['request_timeout'])
+            dice_pool: List[int] = await self.get_dice_pool(dice, amount)
             pool_result_str = ' + '.join(map(str, dice_pool))
             pool_result_int = sum(dice_pool)
             number_modifier = int(modifier[1:]) if modifier != '' else 0
