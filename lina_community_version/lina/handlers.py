@@ -333,11 +333,3 @@ class CoinMessageHandler(LinaNewMessageHandler):
             return 'Решка'
         else:
             return 'Орел'
-
-
-class TimeoutHandler(LinaNewMessageHandler):
-    trigger_word = 'таймаут'
-
-    async def get_content(self, message: NewMessage):
-        await sleep(15)
-        return 'Прошло 15 секунд'
