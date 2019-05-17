@@ -32,6 +32,8 @@ class NewMessage(BaseMessage):
     random_id: int
     attachments: List[Any]
     is_hidden: bool
+    ref: str
+    ref_source: str
     raw_text: Optional[str] = None
     reply_message: Optional[Dict[str, Any]] = None
     action: Optional[Dict[str, Any]] = None
