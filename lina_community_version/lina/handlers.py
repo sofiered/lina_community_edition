@@ -37,7 +37,13 @@ class LinaNewMessageHandler(BaseMessageHandler):
     async def _handler(self, message: NewMessage):
         try:
             content = await self.get_content(message)
-            if content:
+            if isinstance(content, tuple):
+                for one_message in content:
+                    await self.service.api.send_message(
+                        peer_id=message.peer_id,
+                        message=one_message)
+                    await sleep(1)
+            elif isinstance(content, str):
                 await self.service.api.send_message(
                     peer_id=message.peer_id,
                     message=content)
@@ -271,11 +277,18 @@ class SayHelloMessageHandler(LinaNewMessageHandler):
               'Хай!',
               'Йоу!'
               ]
+    unique_hellos = {164555054: [
+        "Да прибудет с тобой великая сила спирта",
+        "Query: Is there someone that you need killed?",
+        "Heia! It's me Lina"]}
 
     async def get_content(self, message: NewMessage):
-        return 'Привет, мастер!' \
-            if message.from_id == self.service.cfg['admin_id'] \
-            else SystemRandom().choice(self.hellos)
+        if message.from_id == self.service.cfg['admin_id']:
+            return 'Привет, мастер!'
+        elif message.from_id in self.unique_hellos:
+            return SystemRandom().choice(self.unique_hellos[message.from_id])
+        else:
+            return SystemRandom().choice(self.hellos)
 
 
 class LoveYouMessageHandler(LinaNewMessageHandler):
@@ -333,3 +346,34 @@ class CoinMessageHandler(LinaNewMessageHandler):
             return 'Решка'
         else:
             return 'Орел'
+
+
+class HelpMessageHandler(LinaNewMessageHandler):
+    triggers = ('help', 'помощь')
+
+    async def is_triggered(self, message: NewMessage) -> bool:
+        if message.raw_text is not None:
+            return any(keyword in message.raw_text
+                       for keyword in self.triggers)
+        else:
+            return False
+
+    async def get_content(self, message: NewMessage):
+        return (
+            'ОСНОВНЫЕ КОМАНДЫ БОТА\r\n\r\n Бот отзывается на "Бот", "Лина" '
+            'при наличии прав администратора или права просматривать всю '
+            'переписку, при отсутствии - только на упоминания '
+            '(через @ или *)\r\n "XкY, XdY, XдY" - бросить дайс с Y '
+            'гранями в количестве X (если вместо X пустое место, то бот '
+            'автоматически принимает его за единицу) \r\n '
+            'Пример: "Лина 3д6"\r\n Помимо обычного броска можно к броску '
+            'прибавлять (+), убавлять (-), умножать '
+            '(x - русская и английская раскладка), и делить (/) '
+            'на определенный модификатор\r\n\r\n "Дайс" - бот совершает '
+            'бросок d20\r\n\r\n "Рандом от X до Y" - Лина случайным образом '
+            'выбирает любое число в диапазоне от X до Y\r\n\r\n',
+            '"Монетка" - Лина бросает монету, и выдает результат\r\n\r\n '
+            '"Посты" - Лина придумывает любое оправдание отсутствия постов '
+            'за вас!\r\n\r\n "Кто избран" (только при наличии прав админа) '
+            '- Лина случайным образом выбирает пользователя из всех '
+            'состоящих в беседе\r\n\r\n "Мяу" - nuff said')
