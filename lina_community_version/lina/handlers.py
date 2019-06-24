@@ -377,3 +377,17 @@ class HelpMessageHandler(LinaNewMessageHandler):
             'за вас!\r\n\r\n "Кто избран" (только при наличии прав админа) '
             '- Лина случайным образом выбирает пользователя из всех '
             'состоящих в беседе\r\n\r\n "Мяу" - nuff said')
+
+
+class WhoAreThereMessageHandler(LinaNewMessageHandler):
+    async def get_content(self, message: NewMessage):
+        try:
+            chosen = await self.service.api.get_conversation_members(
+                message.peer_id)
+            self.service.logger.info(chosen)
+            return 'Смотри в логах'
+        except VKException as e:
+            self.service.logger.error(e)
+            if e.code == ErrorCodes.ADMIN_PERMISSION_REQUIRED.value:
+                return 'Для доступа к списку участников беседы ' \
+                       'мне нужны админские права'
