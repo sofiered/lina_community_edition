@@ -86,6 +86,7 @@ class VkApi:
     async def get_conversation_members(self,
                                        peer_id: int) -> List[UserProfile]:
         response = await self._get_conversation_members(peer_id=peer_id)
+        self.owner.logger.info(response)
         return [UserProfile(**data) for data in
                 response['response']['profiles']]
 
