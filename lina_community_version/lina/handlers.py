@@ -380,6 +380,8 @@ class HelpMessageHandler(LinaNewMessageHandler):
 
 
 class WhoAreThereMessageHandler(LinaNewMessageHandler):
+    trigger_word = 'кто здесь'
+
     async def get_content(self, message: NewMessage):
         try:
             chosen = await self.service.api.get_conversation_members(
