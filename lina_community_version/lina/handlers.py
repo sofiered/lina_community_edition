@@ -67,7 +67,7 @@ class SimpleDiceMessageHandler(LinaNewMessageHandler):
 
     async def get_content(self, _message: NewMessage):
         result = SystemRandom().randint(1, 20)
-        return 'тупо 20' if result == 20 else result
+        return 'тупо 20' if result == 20 else str(result)
 
 
 class RaiseErrorMessageHandler(LinaNewMessageHandler):
