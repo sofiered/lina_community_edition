@@ -37,6 +37,7 @@ class NewMessage(BaseMessage):
     raw_text: Optional[str] = None
     reply_message: Optional[Dict[str, Any]] = None
     action: Optional[Dict[str, Any]] = None
+    payload: Optional[Any] = None
 
     def __post_init__(self):
         self.text = self.text.lower()
