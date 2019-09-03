@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Optional
+from typing import Optional, Dict
 
 
 @dataclass()
@@ -14,6 +14,7 @@ class UserProfile:
     photo_50: str
     photo_100: str
     online: int
+    online_info: Dict[str, bool]
     online_mobile: Optional[int] = None
     online_app: Optional[int] = None
 
