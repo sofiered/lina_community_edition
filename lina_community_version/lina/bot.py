@@ -16,7 +16,7 @@ from lina_community_version.core.handlers import BaseMessageHandler
 
 
 class Lina:
-    _regexp_template = r'(^|\s)(\[club%s\|.+\]|%s)(,|\s|$)'
+    _regexp_template = r'(\b)(\[club%s\|.+\]|%s)(,|\b)'
 
     def __init__(self):
         self._handler_class: Optional[BaseMessageHandler] = None
@@ -89,7 +89,11 @@ class Lina:
     async def _process_new_message(self, message: NewMessage) -> None:
         if not re.search(self.regexp_mention, message.text):
             return  # message without bot mention
-        message.raw_text = re.sub(self.regexp_mention, '', message.text)
+        message.raw_text = re.sub(self.regexp_mention,
+                                  '',
+                                  message.text,
+                                  count=1)
+        self.logger.info('raw text: %s', message.raw_text)
         await self._handle_new_message(message)
 
     async def _handle_new_message(self, message: NewMessage):
