@@ -89,7 +89,10 @@ class Lina:
     async def _process_new_message(self, message: NewMessage) -> None:
         if not re.search(self.regexp_mention, message.text):
             return  # message without bot mention
-        message.raw_text = re.sub(self.regexp_mention, '', message.text)
+        message.raw_text = re.sub(self.regexp_mention,
+                                  '',
+                                  message.text,
+                                  count=1)
         self.logger.info('raw text: %s', message.raw_text)
         await self._handle_new_message(message)
 
