@@ -17,7 +17,6 @@ class UserProfile:
     online_info: Dict[str, bool]
     online_mobile: Optional[int] = None
     online_app: Optional[int] = None
-    deactivated: Optional[bool] = None
 
     def __repr__(self):
         return '%s %s' % (self.first_name, self.last_name)

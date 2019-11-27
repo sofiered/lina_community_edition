@@ -87,7 +87,8 @@ class VkApi:
                                        peer_id: int) -> List[UserProfile]:
         response = await self._get_conversation_members(peer_id=peer_id)
         return [UserProfile(**data) for data in
-                response['response']['profiles']]
+                response['response']['profiles'] if data.get('deactivated',
+                                                             True)]
 
     async def send_error_sticker(self, peer_id: int):
         await self.send_sticker(peer_id=peer_id,
