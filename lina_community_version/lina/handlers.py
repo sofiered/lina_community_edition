@@ -377,3 +377,10 @@ class HelpMessageHandler(LinaNewMessageHandler):
             'за вас!\r\n\r\n "Кто избран" (только при наличии прав админа) '
             '- Лина случайным образом выбирает пользователя из всех '
             'состоящих в беседе\r\n\r\n "Мяу" - nuff said')
+
+
+class WhatTheFuckMessageHandler(LinaNewMessageHandler):
+    trigger_word = 'что за хуйн'
+
+    async def get_content(self, message: NewMessage):
+        return 'А я что? Я ничего'
