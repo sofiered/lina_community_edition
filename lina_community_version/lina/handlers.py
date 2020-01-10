@@ -215,7 +215,9 @@ class WhoIsGuiltyMessageHandler(LinaNewMessageHandler):
         'Тупые школьники',
         'Тыковка не виновата',
         'Это все хозяин',
-        'Это тыковка'
+        'Это тыковка',
+        'Чертовы комми',
+        'Проклятые бюрократы'
     ]
 
     async def get_content(self, message: NewMessage):
