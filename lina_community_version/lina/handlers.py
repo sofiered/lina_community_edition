@@ -107,11 +107,15 @@ class RegexpDiceMessageHandler(LinaNewMessageHandler):
         return result
 
     async def get_content(self, message: NewMessage):
+        bad_master = False
         if message.raw_text is not None:
             parse_result = self.pattern.findall(message.raw_text)
             amount: int = self.cast_amount(parse_result[0][0])
             dice: int = int(parse_result[0][1])
             modifier: str = parse_result[0][2]
+
+            if message.from_id == 270767195 and dice != 10:
+                    bad_master = True
 
             if amount < 1 or dice < 1:
                 raise VkSendErrorException
@@ -139,7 +143,7 @@ class RegexpDiceMessageHandler(LinaNewMessageHandler):
             result = '(%s)%s = %s' % (pool_result_str,
                                       modifier,
                                       throw_result)
-            return result
+            return result if not bad_master else result + ' Води вампиров!'
         else:
             raise VkSendErrorException
 
