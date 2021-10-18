@@ -201,7 +201,7 @@ class InfoMessageHandler(LinaNewMessageHandler):
 class WhoIsGuiltyMessageHandler(LinaNewMessageHandler):
     trigger_word = 'кто виноват'
     guilty = [
-        'Да это все массонский заговор',
+        'Да это все масонский заговор',
         'Путин, кто же еще',
         'Это происки сатаны',
         'Рептилоиды, они же управляют всей планетой',
