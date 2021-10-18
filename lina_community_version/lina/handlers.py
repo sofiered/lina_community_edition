@@ -160,6 +160,8 @@ class MeowMessageHandler(LinaNewMessageHandler):
         lovely_ids = range(7096, 7143)
         pair_id = range(11607, 11654)
         snow_id = range(11238, 11285)
+        earl = range(51918, 51965)
+        tabby = range(54129, 54150)
 
         cats_id = [cat for cat in chain(peachy_ids,
                                         rumka_ids,
@@ -167,7 +169,9 @@ class MeowMessageHandler(LinaNewMessageHandler):
                                         seth_ids,
                                         lovely_ids,
                                         pair_id,
-                                        snow_id)]
+                                        snow_id,
+                                        earl,
+                                        tabby)]
         return SystemRandom().choice(cats_id)
 
 
@@ -362,10 +366,14 @@ class HelpMessageHandler(LinaNewMessageHandler):
 
     async def get_content(self, message: NewMessage):
         return (
-            'ОСНОВНЫЕ КОМАНДЫ БОТА\r\n\r\n Бот отзывается на "Бот", "Лина" '
-            'при наличии прав администратора или права просматривать всю '
-            'переписку, при отсутствии - только на упоминания '
-            '(через @ или *)\r\n\r\n "XкY, XdY, XдY" - бросить дайс с Y '
+            'Бот реагирует на команды в двух случаях: \r\n'
+            '1) Если у бота есть права администратора или право просматривать '
+            'всю переписку - на сообщения начинающиеся со слова  "Бот", '
+            '"Лина" \r\n'
+            '2) в остальных случаях только на упоминания бота через @ или *'
+            '\r\n\r\n '
+            'ОСНОВНЫЕ КОМАНДЫ БОТА\r\n\r\n'
+            '"XкY, XdY, XдY" - бросить дайс с Y '
             'гранями в количестве X (если вместо X пустое место, то бот '
             'автоматически принимает его за единицу) \r\n '
             'Пример: "Лина 3д6"\r\n Помимо обычного броска можно к броску '
@@ -378,7 +386,10 @@ class HelpMessageHandler(LinaNewMessageHandler):
             '"Посты" - Лина придумывает любое оправдание отсутствия постов '
             'за вас!\r\n\r\n "Кто избран" (только при наличии прав админа) '
             '- Лина случайным образом выбирает пользователя из всех '
-            'состоящих в беседе\r\n\r\n "Мяу" - nuff said')
+            'состоящих в беседе\r\n\r\n "Мяу" - Лина постит случайный '
+            'стикер с котиком'
+            '"Шар судьбы" - Лина постит случайный ответ из вариантов '
+            'классического Magic 8 ball')
 
 
 class WhatTheFuckMessageHandler(LinaNewMessageHandler):
