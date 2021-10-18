@@ -386,3 +386,33 @@ class WhatTheFuckMessageHandler(LinaNewMessageHandler):
 
     async def get_content(self, message: NewMessage):
         return 'А я что? Я ничего'
+
+
+class Magic8BallMessageHangler(LinaNewMessageHandler):
+    trigger_word = 'шар судьбы'
+
+    ball_answers = [
+        'Бесспорно',
+        'Предрешено',
+        'Никаких сомнений',
+        'Определенно да',
+        'Можешь быть уверен в этом',
+        'Мне кажется - «да»',
+        'Вероятнее всего',
+        'Хорошие перспективы',
+        'Знаки говорят - «да»',
+        'Да',
+        'Пока не ясно, попробуй снова',
+        'Спроси позже',
+        'Лучше не рассказывать',
+        'Сейчас нельзя предсказать',
+        'Сконцентрируйся и спроси опять',
+        'Даже не думай',
+        'Мой ответ - «нет»',
+        'По моим данным - «нет»',
+        'Перспективы не очень хорошие',
+        'Весьма сомнительно'
+    ]
+
+    async def get_content(self, message: NewMessage):
+        return SystemRandom().choice(self.ball_answers)
