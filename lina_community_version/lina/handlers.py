@@ -2,7 +2,7 @@ import re
 from asyncio import wait_for, sleep, TimeoutError
 from itertools import chain
 from random import SystemRandom, choice
-from typing import Optional, TYPE_CHECKING, Pattern, List
+from typing import Optional, TYPE_CHECKING, Pattern, List, Tuple
 
 from lina_community_version.core.handlers import BaseMessageHandler
 from lina_community_version.core.messages import NewMessage
@@ -79,7 +79,7 @@ class RaiseErrorMessageHandler(LinaNewMessageHandler):
 
 class RegexpDiceMessageHandler(LinaNewMessageHandler):
     pattern: Pattern[str] = re.compile(
-        r'(^|[\d\s]+)[dдк](\d+)\s*([xх/*+-]\d+)?')
+        r'(^|[\d\s]+)[dдк](\d+)\s*([xх/*+-]\d+)?\s*(k([h|l])(\d*))?')
 
     async def is_triggered(self, message: NewMessage) -> bool:
         if message.raw_text is not None:
@@ -106,19 +106,51 @@ class RegexpDiceMessageHandler(LinaNewMessageHandler):
         result = SystemRandom().randint(1, dice)
         return result
 
+    @staticmethod
+    def get_khl(pool: List[int],
+                high_low: str,
+                high_low_count: int) -> Tuple[List[int], List[int]]:
+        indexes = (sorted(range(len(pool)),
+                          key=pool.__getitem__,
+                          reverse=high_low == 'h'))[:high_low_count]
+        keep = list()
+        drop = list()
+        for index, item in enumerate(pool):
+            if index in indexes:
+                keep.append(item)
+            else:
+                drop.append(item)
+        return keep, drop
+
+    @staticmethod
+    def pool_to_str(pool: List[int]) -> str:
+        return ' + '.join(map(str, pool))
+
     async def get_content(self, message: NewMessage):
         if message.raw_text is not None:
             parse_result = self.pattern.findall(message.raw_text)
             amount: int = self.cast_amount(parse_result[0][0])
             dice: int = int(parse_result[0][1])
             modifier: str = parse_result[0][2]
-
+            khl = parse_result[0][4]
+            try:
+                khl_count = int(parse_result[0][5])
+            except ValueError:
+                khl_count = 1
             if amount < 1 or dice < 1:
                 raise VkSendErrorException
-
             dice_pool: List[int] = await self.get_dice_pool(dice, amount)
-            pool_result_str = ' + '.join(map(str, dice_pool))
-            pool_result_int = sum(dice_pool)
+            if khl and khl_count:
+                pool_keep, pool_drop = self.get_khl(dice_pool, khl, khl_count)
+                pool_result_int = sum(pool_keep)
+                if not len(pool_drop):
+                    pool_result_str = self.pool_to_str(pool_keep)
+                else:
+                    pool_result_str = f'{self.pool_to_str(pool_keep)} | ' \
+                                      f'{self.pool_to_str(pool_drop)}'
+            else:
+                pool_result_str = self.pool_to_str(dice_pool)
+                pool_result_int = sum(dice_pool)
             number_modifier = int(modifier[1:]) if modifier != '' else 0
             if modifier.startswith('+'):
                 throw_result = str(pool_result_int + number_modifier)
