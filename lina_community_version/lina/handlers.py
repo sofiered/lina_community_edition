@@ -164,11 +164,11 @@ class RegexpDiceMessageHandler(LinaNewMessageHandler):
                 throw_result = str(pool_result_int)
 
             if amount == 1 and dice == 20 and pool_result_int == 20:
-                return 'тупо 20%s%s' % (modifier,
-                                        ('=%s' % throw_result)
-                                        if modifier != '' else '')
+                return 'тупо 20 %s %s' % (modifier,
+                                          ('= %s' % throw_result)
+                                          if modifier != '' else '')
 
-            result = '(%s)%s = %s' % (pool_result_str,
+            result = '(%s) %s = %s' % (pool_result_str,
                                       modifier,
                                       throw_result)
             return result
