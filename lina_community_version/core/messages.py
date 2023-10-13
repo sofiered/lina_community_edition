@@ -32,6 +32,7 @@ class NewMessage(BaseMessage):
     random_id: int
     attachments: List[Any]
     is_hidden: bool
+    entity_version: int
     ref: Optional[str] = None
     ref_source: Optional[str] = None
     raw_text: Optional[str] = None
