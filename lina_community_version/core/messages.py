@@ -1,7 +1,7 @@
 import inspect
 
 from typing import Dict, Any, List, Union, Optional
-from dataclasses import dataclass
+from dataclasses import dataclass, fields as df_fields
 from enum import Enum
 
 
@@ -67,7 +67,7 @@ class NewMessage(BaseMessage):
 def message_factory(_type: str,
                     data: Dict[str, Any]) -> Union[NewMessage, Confirmation]:
     if _type == MessageType.NewMessage.value:
-        field_names = set(f.name for f in dataclasses.fields(NewMessage))
+        field_names = set(f.name for f in df_fields(NewMessage))
         return NewMessage(**{k:v for k,v in data.items() if k in field_names})
     elif _type == MessageType.Confirmation.value:
         return Confirmation()
